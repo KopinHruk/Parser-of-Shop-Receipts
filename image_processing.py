@@ -1,24 +1,38 @@
 import re
-
 import cv2
 import numpy as np
-import pandas as pd
 import pytesseract
 import requests
 
 from utils import d_print
 
+# TODO finish data classes
+class ParsedGoodsList:
+
+    def __init__(self, products, shop, date):
+        self.products = products
+        self.shop = shop
+        self.date = date
+
+
+class ParsedGood:
+
+    def __init__(self, full_name, category, price):
+        self.full_name = full_name
+        self.category = category
+        self.price = price
+
 
 def tesseract_image(image_path, tes_config='', timeout=2):
-    '''
+    """
     Scans image of check for text
 
     :param image_path: path to image to process
     :param tes_config: tesseract config string (raw)
     :param timeout: tesseract's timeout
 
-    :return: raw canvans of scanned text, or None if Timeout Error
-    '''
+    :return: raw canvas of scanned text, or None if Timeout Error
+    """
 
     img_cv = cv2.imread(image_path)
     img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
@@ -32,11 +46,11 @@ def tesseract_image(image_path, tes_config='', timeout=2):
 
 
 class CheckParser:
-    '''
+    """
     Parses raw text, tries to find products and their prices, using available patterns;
     If the price wasn't found, it returns 0.0 instead;
     If debug=True, all products and prices will be shown;
-    '''
+    """
 
     def __init__(self, debug=False):
         # Define regular expressions
@@ -91,7 +105,7 @@ class CheckParser:
         # Split canvas into lines
         lines = check_string.split('\n')
 
-        # TODO - handle unsuccessful seacrh
+        # TODO - handle unsuccessful search
         parse_results = []
         parse_metric = []
         patterns = [self.parse_pattern1, self.parse_pattern2]
@@ -113,12 +127,13 @@ class CheckParser:
 
 class CrankShaft:
     # TODO - create doc string
-    '''
+    """
 
-    '''
+    """
 
     def __init__(self, debug=False):
         self.api_url = "https://receiptnlp.tinkoff.ru/api/fns"
+        # TODO get shop and date attributes
         self.data = {
             "user": "магазин",
             "userInn": "777123456",
@@ -145,24 +160,17 @@ class CrankShaft:
         d_print(f'Status code: {response.status_code}', self.debug)  # Debug print
         response = response.json()
 
-        # Creating DataFrame with results
-        df = pd.DataFrame()
-        full_names = []
-        categories = []
-        categories_id = []
+        # Creating DataClass with results
+        temp_products = []
 
-        for item in response['result']['items']:
-            full_names.append(item['look'])
-            categories.append(item['category'])
-            categories_id.append(item['category_id'])
+        for i, item in enumerate(response['result']['items']):
+            temp_category = item['category']
+            temp_price = prices[i]
 
-        df['scanned_name'] = pd.Series(products)
-        df['full_name'] = pd.Series(full_names)
-        df['category'] = pd.Series(categories)
-        df['category_id'] = pd.Series(categories_id)
-        df['price'] = pd.Series(prices)
+            if temp_category == 9900 and temp_price == '0.0': continue
+            temp_product = ParsedGood(category=temp_category, full_name=item['look'], price=temp_price)
+            temp_products.append(temp_product)
 
-        # Drop trash
-        df.drop(index=df[(df['category_id'] == 9900) & (df['price'] == '0.0')].index, inplace=True)
+        result = ParsedGoodsList(products=temp_products, date=response['result']['dateTime'], shop=response['result']['user'])
 
-        return df
+        return result
