@@ -6,6 +6,7 @@ import requests
 
 from utils import d_print
 
+
 # TODO finish data classes
 class ParsedGoodsList:
 
@@ -164,13 +165,15 @@ class CrankShaft:
         temp_products = []
 
         for i, item in enumerate(response['result']['items']):
-            temp_category = item['category']
             temp_price = prices[i]
 
-            if temp_category == 9900 and temp_price == '0.0': continue
-            temp_product = ParsedGood(category=temp_category, full_name=item['look'], price=temp_price)
+            # If we cannot recognize either the category or the price, then remove
+            if item['category_id'] == 9900 and temp_price == '0.0':
+                continue
+            temp_product = ParsedGood(category=item['category'], full_name=item['look'], price=temp_price)
             temp_products.append(temp_product)
 
-        result = ParsedGoodsList(products=temp_products, date=response['result']['dateTime'], shop=response['result']['user'])
+        result = ParsedGoodsList(products=temp_products, date=response['result']['dateTime'],
+                                 shop=response['result']['user'])
 
         return result

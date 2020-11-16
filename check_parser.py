@@ -1,6 +1,7 @@
 from image_processing import tesseract_image, CheckParser, CrankShaft
 
 
+# TODO rebuild parse_check_image function
 def parse_check_image(image_path):
     work_string = tesseract_image(image_path)
 
