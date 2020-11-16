@@ -1,3 +1,4 @@
+# Module contain classes for main parse cycle: parse image for text, parse text for products, classify products.
 import re
 import cv2
 import numpy as np
@@ -17,11 +18,11 @@ class ParsedProductsList:
     Attributes
     ----------
     products : ParsedProduct()
-       list of data objects, that represent a products
+       List of data objects, that represent a products.
     shop : str
-       name of shop, where check was received
+       Name of shop, where check was received.
     date : str
-       date, when check was received
+       Date, when check was received.
 
     Methods
     -------
@@ -88,7 +89,7 @@ def tesseract_image(image_path, tes_config='', timeout=2.):
     Returns
     -------
     str
-        Raw canvas of scanned text, or None if Timeout Error
+        Raw canvas of scanned text, or None if Timeout Error.
     """
 
     img_cv = cv2.imread(image_path)
@@ -169,12 +170,12 @@ class CheckParser:
         Parameters
         ----------
         check_string : str
-            Multiline raw sting from Tesseract
+            Multiline raw sting from Tesseract.
 
         Returns
         -------
         (list, list)
-            List of raw products names (str), List of products prices (float)
+            List of raw products names (str), List of products prices (float).
 
         """
 

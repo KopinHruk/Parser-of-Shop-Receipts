@@ -1,4 +1,5 @@
 # NOT WORKING / IN PROGRESS
+# Module to correct wrong-parsed words.
 
 from spellchecker import SpellChecker
 
