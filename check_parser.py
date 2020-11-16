@@ -1,4 +1,4 @@
-from image_processing import tesseract_image, CheckParser, CrankShaft
+from image_processing.image_processing import tesseract_image, CheckParser, CrankShaft
 
 
 # TODO rebuild parse_check_image function

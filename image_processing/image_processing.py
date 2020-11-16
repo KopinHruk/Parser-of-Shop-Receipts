@@ -4,7 +4,7 @@ import numpy as np
 import pytesseract
 import requests
 
-from utils import d_print
+from utils.utils import d_print
 
 
 # TODO finish data classes
