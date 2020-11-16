@@ -8,31 +8,87 @@ from utils import d_print
 
 
 # TODO finish data classes
-class ParsedGoodsList:
+class ParsedProductsList:
+    """
+    A class that contain parsed products.
+
+    ...
+
+    Attributes
+    ----------
+    products : ParsedProduct()
+       list of data objects, that represent a products
+    shop : str
+       name of shop, where check was received
+    date : str
+       date, when check was received
+
+    Methods
+    -------
+    get_num_products():
+       Returns total number of products.
+
+    get_data_frame():
+       Returns Data Frame with all positions.
+    """
 
     def __init__(self, products, shop, date):
         self.products = products
         self.shop = shop
         self.date = date
 
+    def get_data_frame(self):
+        pass
 
-class ParsedGood:
+    def get_num_products(self):
+        pass
+
+
+class ParsedProduct:
+    """
+   A class to represent a product.
+
+   ...
+
+   Attributes
+   ----------
+   full_name : str
+       Name of the product that was parsed by script.
+   category : str
+       Shop category of the product.
+   price : float
+       Price of the product.
+   """
 
     def __init__(self, full_name, category, price):
         self.full_name = full_name
         self.category = category
         self.price = price
 
+    def __str__(self):
+        return f"Product: '{self.full_name[:15] + '...'}'"
 
-def tesseract_image(image_path, tes_config='', timeout=2):
+    def __repr__(self):
+        return f"Data Object of Product: '{self.full_name[:15] + '...'}'"
+
+
+def tesseract_image(image_path, tes_config='', timeout=2.):
     """
     Scans image of check for text
 
-    :param image_path: path to image to process
-    :param tes_config: tesseract config string (raw)
-    :param timeout: tesseract's timeout
+    Parameters
+    ----------
+    image_path : str
+        Path to image to process.
+    tes_config : str
+        Tesseract config string (raw).
+    timeout : float
+        Timeout time for Tesseract's (in seconds).
 
-    :return: raw canvas of scanned text, or None if Timeout Error
+    Returns
+    -------
+    str
+        Raw canvas of scanned text, or None if Timeout Error
     """
 
     img_cv = cv2.imread(image_path)
@@ -48,8 +104,12 @@ def tesseract_image(image_path, tes_config='', timeout=2):
 
 class CheckParser:
     """
+    Info
+    ----
     Parses raw text, tries to find products and their prices, using available patterns;
+
     If the price wasn't found, it returns 0.0 instead;
+
     If debug=True, all products and prices will be shown;
     """
 
@@ -77,9 +137,9 @@ class CheckParser:
                 last_was_product = False
 
                 if price is not None:
-                    price = price.group().replace(' ', '')
+                    price = float(price.group().replace(' ', ''))  # Only case of wrong conversion to float
                 else:
-                    price = '0.0'
+                    price = 0.0
                 prices.append(price)
                 d_print(f'Price: {price}', self.debug)  # Debug print
                 d_print('', self.debug)  # Debug print
@@ -103,6 +163,21 @@ class CheckParser:
         return self.parse_pattern1(lines)
 
     def parse(self, check_string):
+        """
+        Parse raw multiline string from Tesseract, using available patterns
+
+        Parameters
+        ----------
+        check_string : str
+            Multiline raw sting from Tesseract
+
+        Returns
+        -------
+        (list, list)
+            List of raw products names (str), List of products prices (float)
+
+        """
+
         # Split canvas into lines
         lines = check_string.split('\n')
 
@@ -168,12 +243,12 @@ class CrankShaft:
             temp_price = prices[i]
 
             # If we cannot recognize either the category or the price, then remove
-            if item['category_id'] == 9900 and temp_price == '0.0':
+            if item['category_id'] == 9900 and temp_price == 0.0:
                 continue
-            temp_product = ParsedGood(category=item['category'], full_name=item['look'], price=temp_price)
+            temp_product = ParsedProduct(category=item['category'], full_name=item['look'], price=temp_price)
             temp_products.append(temp_product)
 
-        result = ParsedGoodsList(products=temp_products, date=response['result']['dateTime'],
-                                 shop=response['result']['user'])
+        result = ParsedProductsList(products=temp_products, date=response['result']['dateTime'],
+                                    shop=response['result']['user'])
 
         return result

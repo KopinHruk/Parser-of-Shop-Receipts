@@ -3,14 +3,28 @@ from image_processing import tesseract_image, CheckParser, CrankShaft
 
 # TODO rebuild parse_check_image function
 def parse_check_image(image_path):
+    """
+
+    Parameters
+    ----------
+    image_path : str
+        Path to image to process
+
+    Returns
+    -------
+    ParsedProductsList()
+        Data Object that contains products and their attributes
+    """
+
     work_string = tesseract_image(image_path)
 
-    b = CheckParser(debug=False)
-    products, prices = b.parse(work_string)
+    raw_parser_object = CheckParser(debug=False)
+    products, prices = raw_parser_object.parse(work_string)
 
-    assert len(prices) == len(products)
+    # TODO handle errors
+    # assert len(prices) == len(products)
 
-    man = CrankShaft()
-    dc = man(products, prices)
+    distiller_object = CrankShaft()
+    data_class = distiller_object(products, prices)
 
-    return dc
+    return data_class
