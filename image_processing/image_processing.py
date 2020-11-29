@@ -112,6 +112,11 @@ class CheckParser:
     If the price wasn't found, it returns 0.0 instead;
 
     If debug=True, all products and prices will be shown;
+
+    Returns
+    -------
+    (str list, float list)
+        List with names of products; List of prices
     """
 
     def __init__(self, debug=False):
