@@ -3,6 +3,8 @@
 from spellchecker import SpellChecker
 import os
 import numpy as np
+import asyncio
+
 
 
 # spell = SpellChecker()
@@ -39,10 +41,26 @@ class SpellProcessor:
         self.word_corrector.word_frequency.load_text_file(self.second_level_dict)
 
 
-    def write_to_dict(self, correct_words):
-        with open(self.second_level_dict, "a") as second_dict_file:
+    async def write_to_dict(self, correct_words):
+        with open(self.second_level_dict, "r+") as second_dict_file:
+            text = second_dict_file.read()
             for word in correct_words:
-                second_dict_file.write(word + " 1" + "\n")
+                word_pos = text.find(word)
+
+                if not word_pos == -1:
+                    # Increasing frequency of word usage
+                    end_pos = text.find('\n', word_pos)
+                    number = int(text[word_pos + len(word) + 1: end_pos])
+
+                    text = "".join((text[:word_pos + len(word) + 1], str(number + 1), text[end_pos:]))
+                else:
+                    text += (word + " 1" + "\n")
+
+        with open(self.second_level_dict, "w") as second_dict_file:
+            # Saving changes to file
+            #second_dict_file.truncate()
+            second_dict_file.write(text)
+
 
 
     def correct(self, products):
@@ -54,7 +72,7 @@ class SpellProcessor:
             words = product.split(' ')
             fixed_words = []
             for word in words:
-                if len(word) > 2 and len(self.word_corrector.known([word])) == 0 and len(self.spell_checker.known([word])) == 1:
+                if len(word) > 2 and len(self.spell_checker.known([word])) == 1:
                     correct_words.append(word)
 
                 fixed_words.append(self.word_corrector.correction(word))
@@ -62,5 +80,5 @@ class SpellProcessor:
             result_list.append(' '.join(fixed_words))
 
         correct_words = np.unique(np.array(correct_words))
-        self.write_to_dict(correct_words)
+        asyncio.run(self.write_to_dict(correct_words))
         return result_list
